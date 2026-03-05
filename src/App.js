@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { usePlaidLink } from "react-plaid-link";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line,
@@ -183,6 +184,42 @@ function buildScenario(monthly, rate, lump, years) {
 }
 
 const ALL_TXN = genTxns();
+
+async function fetchPlaidTransactions() {
+  try {
+    const res = await fetch("http://localhost:4000/api/plaid/transactions");
+    const data = await res.json();
+    return data.filter(t=>t.amount>0&&!["TRANSFER_OUT","TRANSFER_IN","INCOME"].includes(t.personal_finance_category?.primary)).map(t=>({
+      date: new Date(t.date),
+      year: new Date(t.date).getFullYear(),
+      month: new Date(t.date).getMonth(),
+      monthLabel: new Date(t.date).toLocaleString("default",{month:"short"}),
+      yearMonth: t.date.slice(0,7),
+      category: mapPlaidCategory(t.personal_finance_category?.primary),
+      amount: t.amount,
+      merchant: t.merchant_name||t.name,
+      id: t.transaction_id,
+    }));
+  } catch(e) {
+    console.log("Using mock data");
+    return null;
+  }
+}
+
+function mapPlaidCategory(primary) {
+  const map = {
+    "FOOD_AND_DRINK":"Food & Dining",
+    "GENERAL_MERCHANDISE":"Shopping",
+    "TRANSPORTATION":"Transport",
+    "RENT_AND_UTILITIES":"Utilities",
+    "MEDICAL":"Healthcare",
+    "ENTERTAINMENT":"Entertainment",
+    "PERSONAL_CARE":"Subscriptions",
+    "TRAVEL":"Travel",
+    "GENERAL_SERVICES":"Other",
+  };
+  return map[primary]||"Other";
+}
 const YEARS   = [...new Set(ALL_TXN.map(t=>t.year))].sort();
 
 function makeS(inp) {
@@ -1244,11 +1281,39 @@ export default function App() {
   const [selCat,     setSelCat]     = useState("All");
   const [search,     setSearch]     = useState("");
   const [connected,  setConnected]  = useState(false);
-  const [connecting, setConnecting] = useState(false);
+  const [linkToken,  setLinkToken]  = useState(null);
+
+const getLinkToken = useCallback(async () => {
+    const res  = await fetch("http://localhost:4000/api/plaid/create-link-token", {method:"POST"});
+    const data = await res.json();
+    setLinkToken(data.link_token);
+  }, []);
+
+  useEffect(()=>{ getLinkToken(); }, [getLinkToken]);
+
+  const { open } = usePlaidLink({
+    token: linkToken,
+    onSuccess: async (public_token) => {
+      await fetch("http://localhost:4000/api/plaid/exchange-token", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({public_token}),
+      });
+      setConnected(true);
+    },
+  });
   const [riskAnswers,setRiskAnswers]= useState({});
   const [monthly,    setMonthly]    = useState(500);
   const [horiz,      setHoriz]      = useState(20);
   const [lump,       setLump]       = useState(0);
+const [plaidTxns, setPlaidTxns] = useState(null);
+
+useEffect(()=>{
+  if(connected){
+    fetchPlaidTransactions().then(data=>{ if(data) setPlaidTxns(data); });
+  }
+},[connected]);
+
 
   const riskScore   = Object.values(riskAnswers).reduce((s,v)=>s+v,0);
   const riskProfile = getRisk(riskScore);
@@ -1258,8 +1323,8 @@ export default function App() {
 
   const INP_STYLE = {background:"#0f172a",border:"1px solid #334155",borderRadius:8,padding:"8px 12px",color:"#e2e8f0",fontSize:13,outline:"none"};
   const S = makeS(INP_STYLE);
-
-  const filtered   = useMemo(()=>ALL_TXN.filter(t=>(selYear==="All"||t.year===Number(selYear))&&(selCat==="All"||t.category===selCat)&&(search===""||t.merchant.toLowerCase().includes(search.toLowerCase()))),[selYear,selCat,search]);
+const txnSource = plaidTxns || ALL_TXN;
+  const filtered   = useMemo(()=>txnSource.filter(t=>(selYear==="All"||t.year===Number(selYear))&&(selCat==="All"||t.category===selCat)&&(search===""||t.merchant.toLowerCase().includes(search.toLowerCase()))),[selYear,selCat,search]);
   const totalSpent = useMemo(()=>filtered.reduce((s,t)=>s+t.amount,0),[filtered]);
   const byCategory = useMemo(()=>{const map={};filtered.forEach(t=>{map[t.category]=(map[t.category]||0)+t.amount;});return Object.entries(map).map(([name,value])=>({name,value:+value.toFixed(2)})).sort((a,b)=>b.value-a.value);},[filtered]);
   const byMonth    = useMemo(()=>{const map={};ALL_TXN.filter(t=>selYear==="All"?true:t.year===Number(selYear)).forEach(t=>{const k=t.yearMonth;if(!map[k])map[k]={label:`${t.monthLabel} ${t.year}`,total:0,...Object.fromEntries(CATS.map(c=>[c,0]))};map[k].total=+(map[k].total+t.amount).toFixed(2);map[k][t.category]=+((map[k][t.category]||0)+t.amount).toFixed(2);});return Object.values(map).slice(-24);},[selYear]);
@@ -1277,15 +1342,13 @@ export default function App() {
         <div style={{...S.card,padding:40}}>
           <div style={{fontSize:48,marginBottom:16}}>🏦</div>
           <h2 style={{color:"#fff",marginBottom:8}}>Connect Your Bank</h2>
-          <p style={{color:"#64748b",fontSize:14,marginBottom:28}}>Connect Wells Fargo + Alpaca to analyze spending and automate investments.</p>
+          <p style={{color:"#64748b",fontSize:14,marginBottom:28}}> + Alpaca to analyze spending and automate investments.</p>
           <div style={{background:"#0f172a",borderRadius:12,padding:16,marginBottom:24,textAlign:"left"}}>
             {["256-bit encryption via Plaid","Alpaca paper trading — no real money risk","Read-only bank access","Disconnect anytime"].map(f=>(
               <div key={f} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8,fontSize:13,color:"#94a3b8"}}><span style={{color:"#10b981"}}>✓</span>{f}</div>
             ))}
           </div>
-          <button onClick={()=>{setConnecting(true);setTimeout(()=>{setConnecting(false);setConnected(true);},2000);}} disabled={connecting} style={{width:"100%",padding:"14px",background:connecting?"#334155":"linear-gradient(135deg,#6366f1,#4f46e5)",border:"none",borderRadius:10,color:"#fff",fontWeight:700,fontSize:15,cursor:connecting?"not-allowed":"pointer"}}>
-            {connecting?"🔐 Connecting...":"🔗 Connect Wells Fargo + Alpaca"}
-          </button>
+        <button onClick={()=>open()} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#6366f1,#4f46e5)",border:"none",borderRadius:10,color:"#fff",fontWeight:700,fontSize:15,cursor:"pointer"}}>Connect Wells Fargo + Alpaca</button>
         </div>
       </div>
     </div>
