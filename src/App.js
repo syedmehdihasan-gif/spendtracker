@@ -5,15 +5,46 @@ import {
   ReferenceLine, RadarChart, Radar, PolarGrid, PolarAngleAxis
 } from "recharts";
 
+// ── Accounts Mock Data ───────────────────────────────────────
+const CREDIT_CARDS = [
+  {id:1,name:"Chase Sapphire",network:"Visa",balance:2840.50,limit:10000,minPayment:85,dueDate:"Mar 15",apr:24.99,color:"#6366f1",rewards:"3.2x points",recentSpend:[{cat:"Food",amt:420},{cat:"Travel",amt:380},{cat:"Shopping",amt:290},{cat:"Other",amt:180}]},
+  {id:2,name:"Amex Gold",network:"Amex",balance:1240.00,limit:8000,minPayment:35,dueDate:"Mar 22",apr:19.99,color:"#f59e0b",rewards:"4x dining",recentSpend:[{cat:"Dining",amt:340},{cat:"Groceries",amt:220},{cat:"Shopping",amt:180},{cat:"Other",amt:90}]},
+  {id:3,name:"Citi Double Cash",network:"Mastercard",balance:580.25,limit:5000,minPayment:25,dueDate:"Mar 28",apr:21.99,color:"#10b981",rewards:"2% cashback",recentSpend:[{cat:"Gas",amt:120},{cat:"Utilities",amt:180},{cat:"Shopping",amt:160},{cat:"Other",amt:80}]},
+];
+const BROKERAGE_ACCTS = [
+  {id:1,name:"Fidelity",type:"Taxable",balance:24820.40,dayChange:+340.20,dayChangePct:+1.38,totalGain:+4820.40,color:"#10b981",
+    holdings:[{ticker:"VOO",name:"Vanguard S&P 500",shares:12.5,price:489.47,value:6118.38,gain:+818.38,gainPct:+15.4},{ticker:"AAPL",name:"Apple Inc.",shares:18,price:218.24,value:3928.32,gain:+928.32,gainPct:+30.9},{ticker:"BND",name:"Vanguard Bond ETF",shares:85,price:72.23,value:6139.55,gain:+139.55,gainPct:+2.3}]},
+  {id:2,name:"Schwab",type:"Taxable",balance:12340.80,dayChange:-120.40,dayChangePct:-0.97,totalGain:+2340.80,color:"#6366f1",
+    holdings:[{ticker:"QQQ",name:"Invesco QQQ",shares:10,price:485.20,value:4852.00,gain:+852.00,gainPct:+21.3},{ticker:"VTI",name:"Vanguard Total Mkt",shares:28,price:267.45,value:7488.60,gain:+1488.60,gainPct:+24.8}]},
+  {id:3,name:"Robinhood",type:"Taxable",balance:4280.60,dayChange:+82.10,dayChangePct:+1.96,totalGain:+280.60,color:"#22d3ee",
+    holdings:[{ticker:"TSLA",name:"Tesla",shares:5,price:248.42,value:1242.10,gain:-257.90,gainPct:-17.2},{ticker:"NVDA",name:"NVIDIA",shares:6,price:838.75,value:5032.50,gain:+1032.50,gainPct:+25.8}]},
+];
+const RETIREMENT_ACCTS = [
+  {id:1,name:"401k — Fidelity",employer:"Acme Corp",balance:84320.00,ytdContrib:6200,employerMatch:3100,vestingPct:80,contribRate:8,employerMatchRate:4,ror:9.2,color:"#10b981",allocation:[{name:"US Stocks",pct:60},{name:"Intl Stocks",pct:20},{name:"Bonds",pct:15},{name:"Other",pct:5}]},
+  {id:2,name:"Roth IRA — Schwab",employer:null,balance:28450.00,ytdContrib:4000,employerMatch:0,vestingPct:100,contribRate:null,employerMatchRate:0,ror:10.1,color:"#6366f1",allocation:[{name:"US Stocks",pct:70},{name:"Intl Stocks",pct:20},{name:"Bonds",pct:10},{name:"Other",pct:0}]},
+];
+const SAVINGS_ACCTS = [
+  {id:1,name:"Emergency Fund",bank:"Marcus by Goldman",balance:18500,goal:20000,apy:5.10,monthlyContrib:500,color:"#10b981",type:"High-Yield Savings"},
+  {id:2,name:"House Down Payment",bank:"Ally Bank",balance:32400,goal:80000,apy:4.85,monthlyContrib:1000,color:"#6366f1",type:"High-Yield Savings"},
+  {id:3,name:"Vacation Fund",bank:"Capital One 360",balance:2800,goal:5000,apy:4.30,monthlyContrib:200,color:"#f59e0b",type:"Savings"},
+];
+const NW_HISTORY = [
+  {month:"Mar 23",value:98200},{month:"Apr 23",value:101400},{month:"May 23",value:99800},
+  {month:"Jun 23",value:104200},{month:"Jul 23",value:108600},{month:"Aug 23",value:106900},
+  {month:"Sep 23",value:111200},{month:"Oct 23",value:115800},{month:"Nov 23",value:119400},
+  {month:"Dec 23",value:123200},{month:"Jan 24",value:128600},{month:"Feb 24",value:134200},
+  {month:"Mar 24",value:139840},
+];
+
 // ── Constants ────────────────────────────────────────────────
 const C = ["#6366f1","#22d3ee","#f59e0b","#10b981","#f43f5e","#a78bfa","#fb923c","#34d399"];
-const TABS = ["Overview","Monthly Trends","Categories","Transactions","Year Comparison","Spend Analyzer","Investment Strategy","Auto-Invest"];
+const TABS = ["Overview","Monthly Trends","Categories","Transactions","Year Comparison","Spend Analyzer","Investment Strategy","Auto-Invest","Accounts"];
 const CATS = ["Food & Dining","Shopping","Transport","Utilities","Healthcare","Entertainment","Subscriptions","Travel","Groceries","Other"];
 const CAT_ICONS = ["🍔","🛍️","🚗","💡","🏥","🎬","📱","✈️","🛒","📦"];
 const RISK_ICONS = { conservative:"🛡️", moderate:"⚖️", aggressive:"🚀" };
 const RISK_CLR   = { conservative:"#10b981", moderate:"#f59e0b", aggressive:"#f43f5e" };
 const RISK_LBL   = { conservative:"Conservative", moderate:"Moderate", aggressive:"Aggressive" };
-const TAB_CLR    = { "Spend Analyzer":"#a78bfa", "Investment Strategy":"#10b981", "Auto-Invest":"#22d3ee" };
+const TAB_CLR    = { "Spend Analyzer":"#a78bfa", "Investment Strategy":"#10b981", "Auto-Invest":"#22d3ee", "Accounts":"#f59e0b" };
 
 const BENCH = {
   "Food & Dining":  { pct:10, tip:"Cook at home 4x/week — saves ~$200/mo" },
@@ -903,6 +934,310 @@ function AutoInvest({activeFunds, S}) {
   );
 }
 
+// ── Accounts Tab ─────────────────────────────────────────────
+function AccountsTab({S}) {
+  const [view, setView] = useState("overview");
+  const [selCard, setSelCard]   = useState(CREDIT_CARDS[0]);
+  const [selBrok, setSelBrok]   = useState(BROKERAGE_ACCTS[0]);
+  const [retireAge, setRetireAge]   = useState(65);
+  const [currentAge, setCurrentAge] = useState(32);
+
+  const totalBrok   = BROKERAGE_ACCTS.reduce((s,b)=>s+b.balance,0);
+  const totalRet    = RETIREMENT_ACCTS.reduce((s,r)=>s+r.balance,0);
+  const totalSav    = SAVINGS_ACCTS.reduce((s,a)=>s+a.balance,0);
+  const totalAssets = totalBrok+totalRet+totalSav;
+  const totalDebt   = CREDIT_CARDS.reduce((s,c)=>s+c.balance,0);
+  const netWorth    = totalAssets-totalDebt;
+  const nwChange    = netWorth - NW_HISTORY[NW_HISTORY.length-2].value;
+  const yearsLeft   = retireAge-currentAge;
+  const tt          = S.tt;
+
+  return (
+    <div>
+      {/* Net worth header */}
+      <div style={{...S.card,marginBottom:16,background:"linear-gradient(135deg,#0f2744,#0f172a)",border:"1px solid #f59e0b44"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
+          <div>
+            <div style={{fontWeight:800,fontSize:20,color:"#fff",marginBottom:4}}>🏦 Accounts & Net Worth</div>
+            <div style={{fontSize:13,color:"#64748b"}}>All your accounts in one place.</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontSize:11,color:"#64748b"}}>Total Net Worth</div>
+            <div style={{fontWeight:900,fontSize:30,color:"#10b981"}}>{fmtK(netWorth)}</div>
+            <div style={{fontSize:12,color:nwChange>=0?"#10b981":"#f43f5e",fontWeight:600}}>{nwChange>=0?"↑":"↓"} {fmt(Math.abs(nwChange))} this month</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary cards */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:16}}>
+        {[
+          {icon:"💰",label:"Total Assets",    value:fmtK(totalAssets), color:"#10b981"},
+          {icon:"💳",label:"Total Debt",      value:fmt(totalDebt),    color:"#f43f5e"},
+          {icon:"📈",label:"Brokerage",       value:fmtK(totalBrok),   color:"#6366f1"},
+          {icon:"🏦",label:"Retirement",      value:fmtK(totalRet),    color:"#22d3ee"},
+          {icon:"💵",label:"Savings",         value:fmtK(totalSav),    color:"#f59e0b"},
+        ].map(c=>(
+          <div key={c.label} style={S.card}>
+            <div style={{fontSize:18,marginBottom:4}}>{c.icon}</div>
+            <div style={{fontSize:10,color:"#94a3b8",marginBottom:4}}>{c.label}</div>
+            <div style={{fontSize:17,fontWeight:800,color:c.color}}>{c.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Net worth chart */}
+      <div style={{...S.card,marginBottom:16}}>
+        <div style={{fontWeight:600,color:"#fff",marginBottom:12}}>📈 Net Worth — Last 12 Months</div>
+        <ResponsiveContainer width="100%" height={180}>
+          <AreaChart data={NW_HISTORY}>
+            <defs><linearGradient id="nwg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient></defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b"/>
+            <XAxis dataKey="month" tick={{fill:"#64748b",fontSize:9}}/>
+            <YAxis tick={{fill:"#64748b",fontSize:9}} tickFormatter={fmtK}/>
+            <Tooltip formatter={v=>fmt(v)} contentStyle={tt}/>
+            <Area type="monotone" dataKey="value" name="Net Worth" stroke="#10b981" fill="url(#nwg)" strokeWidth={2.5}/>
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Sub nav */}
+      <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
+        {[["overview","📊 Overview"],["cards","💳 Credit Cards"],["brokerage","📈 Brokerage"],["retirement","🏦 Retirement"],["savings","💵 Savings"]].map(([v,l])=>(
+          <button key={v} onClick={()=>setView(v)} style={{padding:"8px 16px",borderRadius:8,border:`1px solid ${view===v?"#f59e0b44":"#334155"}`,background:view===v?"#f59e0b22":"#0f172a",color:view===v?"#f59e0b":"#64748b",cursor:"pointer",fontSize:12,fontWeight:700}}>{l}</button>
+        ))}
+      </div>
+
+      {/* OVERVIEW */}
+      {view==="overview" && (
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+          <div style={S.card}>
+            <div style={{fontWeight:600,color:"#fff",marginBottom:12}}>Asset Breakdown</div>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={[{name:"Brokerage",value:totalBrok},{name:"Retirement",value:totalRet},{name:"Savings",value:totalSav}]} cx="50%" cy="50%" outerRadius={85} dataKey="value" label={({name,percent})=>`${name} ${(percent*100).toFixed(0)}%`} labelLine={false} fontSize={10}>
+                  {["#6366f1","#22d3ee","#10b981"].map((col,i)=><Cell key={i} fill={col}/>)}
+                </Pie>
+                <Tooltip formatter={v=>fmt(v)} contentStyle={tt}/>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={S.card}>
+            <div style={{fontWeight:600,color:"#fff",marginBottom:14}}>All Accounts</div>
+            {[
+              ...BROKERAGE_ACCTS.map(b=>({label:b.name,value:b.balance,color:b.color,icon:"📈"})),
+              ...RETIREMENT_ACCTS.map(r=>({label:r.name.split("—")[0].trim(),value:r.balance,color:r.color,icon:"🏦"})),
+              ...SAVINGS_ACCTS.map(a=>({label:a.name,value:a.balance,color:a.color,icon:"💵"})),
+            ].map(a=>(
+              <div key={a.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:14}}>{a.icon}</span>
+                  <span style={{fontSize:12,color:"#94a3b8"}}>{a.label}</span>
+                </div>
+                <span style={{fontWeight:700,color:a.color,fontSize:13}}>{fmtK(a.value)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CREDIT CARDS */}
+      {view==="cards" && (
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:16}}>
+            {[
+              {icon:"💳",label:"Total Balance",value:fmt(totalDebt),color:"#f43f5e"},
+              {icon:"📊",label:"Total Credit", value:fmt(CREDIT_CARDS.reduce((s,c)=>s+c.limit,0)),color:"#6366f1"},
+              {icon:"⚡",label:"Utilization",  value:`${(totalDebt/CREDIT_CARDS.reduce((s,c)=>s+c.limit,0)*100).toFixed(1)}%`,color:totalDebt/CREDIT_CARDS.reduce((s,c)=>s+c.limit,0)<0.3?"#10b981":"#f43f5e"},
+              {icon:"💸",label:"Min Due",      value:fmt(CREDIT_CARDS.reduce((s,c)=>s+c.minPayment,0)),color:"#f59e0b"},
+            ].map(c=><div key={c.label} style={S.card}><div style={{fontSize:18,marginBottom:4}}>{c.icon}</div><div style={{fontSize:10,color:"#94a3b8",marginBottom:4}}>{c.label}</div><div style={{fontSize:17,fontWeight:800,color:c.color}}>{c.value}</div></div>)}
+          </div>
+          <div style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap"}}>
+            {CREDIT_CARDS.map(card=>(
+              <button key={card.id} onClick={()=>setSelCard(card)} style={{padding:"10px 18px",borderRadius:10,border:`2px solid ${selCard.id===card.id?card.color:"#334155"}`,background:selCard.id===card.id?card.color+"22":"#0f172a",color:selCard.id===card.id?card.color:"#64748b",cursor:"pointer",fontWeight:700,fontSize:13}}>{card.name}</button>
+            ))}
+          </div>
+          <div style={{...S.card,marginBottom:16,border:`1px solid ${selCard.color}44`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
+              <div><div style={{fontWeight:800,fontSize:16,color:"#fff",marginBottom:2}}>{selCard.name}</div><div style={{fontSize:12,color:"#64748b"}}>{selCard.network} · APR {selCard.apr}% · {selCard.rewards}</div></div>
+              <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#64748b"}}>Balance</div><div style={{fontWeight:800,fontSize:22,color:"#f43f5e"}}>{fmt(selCard.balance)}</div><div style={{fontSize:11,color:"#64748b"}}>Min {fmt(selCard.minPayment)} due {selCard.dueDate}</div></div>
+            </div>
+            <div style={{marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:12,color:"#94a3b8"}}>Utilization</span><span style={{fontWeight:700,color:(selCard.balance/selCard.limit)<0.3?"#10b981":"#f43f5e"}}>{(selCard.balance/selCard.limit*100).toFixed(1)}% of {fmt(selCard.limit)}</span></div>
+              <div style={{height:10,background:"#0f172a",borderRadius:5,overflow:"hidden"}}><div style={{height:"100%",width:`${(selCard.balance/selCard.limit*100).toFixed(0)}%`,background:(selCard.balance/selCard.limit)<0.3?"#10b981":(selCard.balance/selCard.limit)<0.5?"#f59e0b":"#f43f5e",borderRadius:5}}/></div>
+              <div style={{fontSize:11,color:"#64748b",marginTop:4}}>Keep below 30% for best credit score</div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12}}>
+              {[
+                {label:"Min Only",monthly:selCard.minPayment,color:"#f43f5e"},
+                {label:"2x Minimum",monthly:selCard.minPayment*2,color:"#f59e0b"},
+                {label:"$500/mo",monthly:500,color:"#10b981"},
+                {label:"$1000/mo",monthly:1000,color:"#6366f1"},
+              ].map(sc=>{
+                const r=selCard.apr/100/12;
+                const months=r>0?Math.ceil(-Math.log(1-selCard.balance*r/sc.monthly)/Math.log(1+r)):Math.ceil(selCard.balance/sc.monthly);
+                const interest=sc.monthly*months-selCard.balance;
+                return (
+                  <div key={sc.label} style={{background:"#0f172a",borderRadius:10,padding:14,border:`1px solid ${sc.color}33`}}>
+                    <div style={{fontWeight:700,color:sc.color,marginBottom:6,fontSize:12}}>{sc.label}</div>
+                    <div style={{fontWeight:800,color:"#fff",fontSize:18,marginBottom:4}}>{months>120?`${(months/12).toFixed(0)}+ yrs`:`${months} mo`}</div>
+                    <div style={{fontSize:11,color:"#f43f5e"}}>Interest: {fmt(Math.max(interest,0))}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BROKERAGE */}
+      {view==="brokerage" && (
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:16}}>
+            {[
+              {icon:"📈",label:"Total Value",value:fmtK(totalBrok),color:"#10b981"},
+              {icon:"💰",label:"Total Gain", value:fmt(BROKERAGE_ACCTS.reduce((s,b)=>s+b.totalGain,0)),color:"#10b981"},
+              {icon:"📅",label:"Today",      value:`${BROKERAGE_ACCTS.reduce((s,b)=>s+b.dayChange,0)>=0?"+":""}${fmt(BROKERAGE_ACCTS.reduce((s,b)=>s+b.dayChange,0))}`,color:BROKERAGE_ACCTS.reduce((s,b)=>s+b.dayChange,0)>=0?"#10b981":"#f43f5e"},
+              {icon:"🏦",label:"Accounts",  value:BROKERAGE_ACCTS.length,color:"#6366f1"},
+            ].map(c=><div key={c.label} style={S.card}><div style={{fontSize:18,marginBottom:4}}>{c.icon}</div><div style={{fontSize:10,color:"#94a3b8",marginBottom:4}}>{c.label}</div><div style={{fontSize:17,fontWeight:800,color:c.color}}>{c.value}</div></div>)}
+          </div>
+          <div style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap"}}>
+            {BROKERAGE_ACCTS.map(b=>(
+              <button key={b.id} onClick={()=>setSelBrok(b)} style={{padding:"10px 18px",borderRadius:10,border:`2px solid ${selBrok.id===b.id?b.color:"#334155"}`,background:selBrok.id===b.id?b.color+"22":"#0f172a",color:selBrok.id===b.id?b.color:"#64748b",cursor:"pointer",fontWeight:700,fontSize:13}}>
+                {b.name} <span style={{fontSize:11,color:b.dayChange>=0?"#10b981":"#f43f5e"}}>{b.dayChange>=0?"+":""}{b.dayChangePct.toFixed(2)}%</span>
+              </button>
+            ))}
+          </div>
+          <div style={{...S.card,marginBottom:16,border:`1px solid ${selBrok.color}44`}}>
+            <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:16}}>
+              <div><div style={{fontWeight:800,fontSize:16,color:"#fff"}}>{selBrok.name}</div><div style={{fontSize:12,color:"#64748b"}}>{selBrok.holdings.length} positions</div></div>
+              <div style={{display:"flex",gap:20}}>
+                <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#64748b"}}>Value</div><div style={{fontWeight:800,fontSize:20,color:"#fff"}}>{fmt(selBrok.balance)}</div></div>
+                <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#64748b"}}>Total Gain</div><div style={{fontWeight:800,fontSize:20,color:selBrok.totalGain>=0?"#10b981":"#f43f5e"}}>{selBrok.totalGain>=0?"+":""}{fmt(selBrok.totalGain)}</div></div>
+              </div>
+            </div>
+            {selBrok.holdings.map((h,i)=>(
+              <div key={h.ticker} style={{background:"#0f172a",borderRadius:10,padding:14,border:`1px solid ${C[i%C.length]}22`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <div style={{width:38,height:38,borderRadius:10,background:C[i%C.length]+"22",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:11,color:C[i%C.length],flexShrink:0}}>{h.ticker}</div>
+                  <div><div style={{fontWeight:700,color:"#e2e8f0",fontSize:13}}>{h.name}</div><div style={{fontSize:11,color:"#64748b"}}>{h.shares} shares @ {fmt(h.price)}</div></div>
+                </div>
+                <div style={{display:"flex",gap:16}}>
+                  <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#64748b"}}>Value</div><div style={{fontWeight:700,color:"#fff"}}>{fmt(h.value)}</div></div>
+                  <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#64748b"}}>Gain</div><div style={{fontWeight:700,color:h.gain>=0?"#10b981":"#f43f5e"}}>{h.gain>=0?"+":""}{fmt(h.gain)}</div></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* RETIREMENT */}
+      {view==="retirement" && (
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:16}}>
+            {[
+              {icon:"🏦",label:"Total Saved",value:fmtK(totalRet),color:"#10b981"},
+              {icon:"📅",label:"YTD Contrib",value:fmt(RETIREMENT_ACCTS.reduce((s,r)=>s+r.ytdContrib,0)),color:"#6366f1"},
+              {icon:"🎁",label:"Employer Match",value:fmt(RETIREMENT_ACCTS.reduce((s,r)=>s+r.employerMatch,0)),color:"#22d3ee"},
+              {icon:"⏰",label:"Years to Retire",value:`${yearsLeft} yrs`,color:"#f59e0b"},
+            ].map(c=><div key={c.label} style={S.card}><div style={{fontSize:18,marginBottom:4}}>{c.icon}</div><div style={{fontSize:10,color:"#94a3b8",marginBottom:4}}>{c.label}</div><div style={{fontSize:17,fontWeight:800,color:c.color}}>{c.value}</div></div>)}
+          </div>
+          <div style={{...S.card,marginBottom:16}}>
+            <div style={{fontWeight:600,color:"#fff",marginBottom:14}}>⚙️ Age Settings</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+              {[{label:"Current Age",value:currentAge,min:22,max:64,set:setCurrentAge,color:"#6366f1"},{label:"Retirement Age",value:retireAge,min:50,max:75,set:setRetireAge,color:"#10b981"}].map(sl=>(
+                <div key={sl.label}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}><span style={{fontSize:12,color:"#94a3b8"}}>{sl.label}</span><span style={{fontWeight:700,color:sl.color,fontSize:16}}>{sl.value}</span></div>
+                  <input type="range" min={sl.min} max={sl.max} value={sl.value} onChange={e=>sl.set(Number(e.target.value))} style={{width:"100%",accentColor:sl.color}}/>
+                </div>
+              ))}
+            </div>
+          </div>
+          {RETIREMENT_ACCTS.map((acct,idx)=>{
+            const r=acct.ror/100/12, months=yearsLeft*12;
+            const mc=(acct.contribRate?acct.balance*acct.contribRate/100/12:acct.ytdContrib/12)+acct.employerMatch/12;
+            const projected=acct.balance*Math.pow(1+r,months)+(r>0?mc*(Math.pow(1+r,months)-1)/r:mc*months);
+            const projData=Array.from({length:yearsLeft+1},(_,y)=>{const m=y*12,v=acct.balance*Math.pow(1+r,m)+(r>0&&m>0?mc*(Math.pow(1+r,m)-1)/r:mc*m);return{year:`${currentAge+y}`,value:Math.round(v)};});
+            return (
+              <div key={acct.id} style={{...S.card,marginBottom:16,border:`1px solid ${acct.color}44`}}>
+                <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:14}}>
+                  <div><div style={{fontWeight:800,fontSize:15,color:"#fff"}}>{acct.name}</div>{acct.employer&&<div style={{fontSize:12,color:"#64748b"}}>Match: {acct.employerMatchRate}% · Vesting: {acct.vestingPct}%</div>}</div>
+                  <div style={{display:"flex",gap:16}}>
+                    <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#64748b"}}>Balance</div><div style={{fontWeight:800,fontSize:18,color:"#fff"}}>{fmtK(acct.balance)}</div></div>
+                    <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#64748b"}}>At {retireAge}</div><div style={{fontWeight:800,fontSize:18,color:acct.color}}>{fmtK(projected)}</div></div>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={160}>
+                  <AreaChart data={projData}>
+                    <defs><linearGradient id={`rg${idx}`} x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={acct.color} stopOpacity={0.3}/><stop offset="95%" stopColor={acct.color} stopOpacity={0}/></linearGradient></defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b"/>
+                    <XAxis dataKey="year" tick={{fill:"#64748b",fontSize:9}} interval={Math.floor(yearsLeft/5)}/>
+                    <YAxis tick={{fill:"#64748b",fontSize:9}} tickFormatter={fmtK}/>
+                    <Tooltip formatter={v=>fmtK(v)} contentStyle={tt}/>
+                    <Area type="monotone" dataKey="value" stroke={acct.color} fill={`url(#rg${idx})`} strokeWidth={2}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* SAVINGS */}
+      {view==="savings" && (
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:16}}>
+            {[
+              {icon:"💰",label:"Total Saved",     value:fmtK(totalSav),color:"#10b981"},
+              {icon:"🎯",label:"Total Goals",      value:fmtK(SAVINGS_ACCTS.reduce((s,a)=>s+a.goal,0)),color:"#6366f1"},
+              {icon:"📈",label:"Monthly Interest", value:fmt(SAVINGS_ACCTS.reduce((s,a)=>s+(a.balance*a.apy/100/12),0)),color:"#22d3ee"},
+              {icon:"💵",label:"Monthly Deposits", value:fmt(SAVINGS_ACCTS.reduce((s,a)=>s+a.monthlyContrib,0)),color:"#f59e0b"},
+            ].map(c=><div key={c.label} style={S.card}><div style={{fontSize:18,marginBottom:4}}>{c.icon}</div><div style={{fontSize:10,color:"#94a3b8",marginBottom:4}}>{c.label}</div><div style={{fontSize:17,fontWeight:800,color:c.color}}>{c.value}</div></div>)}
+          </div>
+          {SAVINGS_ACCTS.map((acct,idx)=>{
+            const pct=acct.balance/acct.goal*100;
+            const remaining=acct.goal-acct.balance;
+            const monthsToGoal=Math.ceil(remaining/(acct.monthlyContrib+acct.balance*acct.apy/100/12));
+            const projData=Array.from({length:Math.min(monthsToGoal+1,61)},(_,i)=>{
+              const r=acct.apy/100/12,v=acct.balance*Math.pow(1+r,i)+acct.monthlyContrib*(Math.pow(1+r,i)-1)/r;
+              return{month:i,value:Math.round(Math.min(v,acct.goal*1.05)),goal:acct.goal};
+            }).filter((_,i)=>i%Math.max(1,Math.floor(monthsToGoal/8))===0);
+            return (
+              <div key={acct.id} style={{...S.card,marginBottom:16,border:`1px solid ${acct.color}44`}}>
+                <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:14}}>
+                  <div><div style={{fontWeight:800,fontSize:15,color:"#fff"}}>{acct.name}</div><div style={{fontSize:12,color:"#64748b"}}>{acct.bank} · {acct.apy}% APY</div></div>
+                  <div style={{display:"flex",gap:16}}>
+                    <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#64748b"}}>Balance</div><div style={{fontWeight:800,fontSize:18,color:"#fff"}}>{fmt(acct.balance)}</div></div>
+                    <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#64748b"}}>Goal</div><div style={{fontWeight:800,fontSize:18,color:acct.color}}>{fmt(acct.goal)}</div></div>
+                  </div>
+                </div>
+                <div style={{marginBottom:14}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:12,color:"#94a3b8"}}>Progress</span><span style={{fontWeight:700,color:acct.color}}>{pct.toFixed(1)}% · {fmt(remaining)} to go</span></div>
+                  <div style={{height:12,background:"#0f172a",borderRadius:6,overflow:"hidden"}}><div style={{height:"100%",width:`${Math.min(pct,100).toFixed(0)}%`,background:`linear-gradient(90deg,${acct.color},${acct.color}99)`,borderRadius:6}}/></div>
+                  <div style={{fontSize:11,color:"#64748b",marginTop:4}}>Goal in ~{monthsToGoal} months at {fmt(acct.monthlyContrib)}/mo</div>
+                </div>
+                <ResponsiveContainer width="100%" height={150}>
+                  <AreaChart data={projData}>
+                    <defs><linearGradient id={`sg${idx}`} x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={acct.color} stopOpacity={0.3}/><stop offset="95%" stopColor={acct.color} stopOpacity={0}/></linearGradient></defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b"/>
+                    <XAxis dataKey="month" tickFormatter={v=>`Mo ${v}`} tick={{fill:"#64748b",fontSize:9}}/>
+                    <YAxis tick={{fill:"#64748b",fontSize:9}} tickFormatter={fmtK}/>
+                    <Tooltip formatter={v=>fmt(v)} contentStyle={tt}/>
+                    <Legend wrapperStyle={{fontSize:11}}/>
+                    <Area type="monotone" dataKey="value" name="Savings" stroke={acct.color} fill={`url(#sg${idx})`} strokeWidth={2}/>
+                    <Line type="monotone" dataKey="goal" name="Goal" stroke="#334155" strokeWidth={1} strokeDasharray="4 2" dot={false}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [tab,        setTab]        = useState("Overview");
   const [selYear,    setSelYear]    = useState("All");
@@ -1125,6 +1460,7 @@ export default function App() {
         {tab==="Spend Analyzer"      && <SpendAnalyzer S={S}/>}
         {tab==="Investment Strategy" && <InvestStrategy riskAnswers={riskAnswers} setRiskAnswers={setRiskAnswers} profileComplete={profComplete} riskProfile={riskProfile} netReturn={netReturn} monthlyInvest={monthly} setMonthlyInvest={setMonthly} lumpSum={lump} setLumpSum={setLump} horizonYears={horiz} setHorizonYears={setHoriz} S={S}/>}
         {tab==="Auto-Invest"         && <AutoInvest activeFunds={activeFunds} S={S}/>}
+        {tab==="Accounts"            && <AccountsTab S={S}/>}
 
       </div>
     </div>
